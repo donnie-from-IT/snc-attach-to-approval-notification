@@ -1,0 +1,38 @@
+attachDocs();
+ 
+function attachDocs() {
+     
+  // grab the sys_watermark record having a reference
+  //   to this email
+  var grEmailWatermark = new GlideRecord('sys_watermark');
+  grEmailWatermark.addQuery('email', current.sys_id);
+  grEmailWatermark.query();
+ 
+  while (grEmailWatermark.next()) {
+     
+    // grab the sysapproval_approver record referenced by
+    //   watermark record   
+    var grAppr = new GlideRecord('sysapproval_approver');
+    grAppr.addQuery('sys_id', grEmailWatermark.source_id);
+    grAppr.query();
+         
+    if (grAppr.next()) {
+             
+      // grab the dms_document_revision record using the approval
+      //   record's document_id field
+      var grDocRev = new GlideRecord("dms_document_revision");
+      grDocRev.addQuery("sys_id", grAppr.document_id);
+      grDocRev.query();
+             
+      if (grDocRev.next()) {
+ 
+        // copy any attachments on associated dms_document_revision
+        //   record to the sys_email record
+        GlideSysAttachment.copy("dms_document_revision", grDocRev.sys_id, "sys_email", current.sys_id);
+      }
+ 
+    }
+ 
+  }
+ 
+}
